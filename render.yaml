@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: fitness-rpg-app
+    name: solo-leveling-fitness
     env: node
     plan: free
     buildCommand: npm install && npm run build
@@ -12,3 +12,7 @@ services:
       - key: SESSION_SECRET
         sync: false
     autoDeploy: true
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-store
