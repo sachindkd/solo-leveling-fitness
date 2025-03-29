@@ -466,14 +466,13 @@ export async function generateQuestSuggestion(
     if (isWeeklyQuest) {
       // Pick a random weekly quest template
       const randomIndex = Math.floor(Math.random() * QUEST_TEMPLATES.weekly.length);
-      questTemplate = QUEST_TEMPLATES.weekly[randomIndex];
-      questTemplate.targetStat = lowestStat.name; // Weekly quests should target lowest stat
+      questTemplate = { ...QUEST_TEMPLATES.weekly[randomIndex] }; // Create a copy of the template
     } else {
       // Pick a random template for the lowest stat
       const statTemplates = QUEST_TEMPLATES[lowestStat.name as keyof typeof QUEST_TEMPLATES];
       if (Array.isArray(statTemplates)) {
         const randomIndex = Math.floor(Math.random() * statTemplates.length);
-        questTemplate = statTemplates[randomIndex];
+        questTemplate = { ...statTemplates[randomIndex] }; // Create a copy of the template
       }
     }
     

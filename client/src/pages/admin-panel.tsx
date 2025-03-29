@@ -47,8 +47,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { RankBadge } from "@/components/ui/rank-badge";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { insertQuestSchema, insertWorkoutSchema, insertShopItemSchema, insertEventSchema } from "@shared/schema";
-import { STATS, STAT_NAMES, RANKS, RANK_DESCRIPTION, JOBS } from "@/lib/constants";
+import { insertQuestSchema, insertWorkoutSchema, insertShopItemSchema, insertEventSchema, STATS, RANKS, JOBS } from "@shared/schema";
+import { STAT_NAMES, RANK_DESCRIPTION } from "@/lib/constants";
 import { 
   Users, 
   ClipboardList, 
