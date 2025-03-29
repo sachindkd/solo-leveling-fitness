@@ -1,4 +1,4 @@
-// Predefined workout templates based on user stats and job class
+ // Predefined workout templates based on user stats and job class
 // This file replaces the OpenAI implementation with predefined templates
 
 // Template workouts by job

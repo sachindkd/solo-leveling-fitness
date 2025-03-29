@@ -29,25 +29,27 @@ export default function Navigation({ currentTab }: NavigationProps) {
               const isActive = tab.path === location;
               return (
                 <Link key={tab.name} href={tab.path}>
-                  <a className={`nav-tab px-4 py-4 font-medium ${
+                  <div className={`nav-tab px-4 py-4 font-medium cursor-pointer ${
                     isActive ? "active text-white" : "text-gray-400 hover:text-gray-300"
                   }`}>
                     <span>{tab.name}</span>
-                  </a>
+                  </div>
                 </Link>
               );
             })}
           </div>
           
           {user?.isAdmin && (
-            <Link href="/architect">
-              <a className={`nav-tab px-4 py-4 font-medium flex items-center ${
-                location === "/architect" ? "active text-secondary" : "text-secondary text-opacity-70 hover:text-opacity-100"
-              }`}>
-                <Shield className="h-4 w-4 mr-1" />
-                <span>Architect</span>
-              </a>
-            </Link>
+            <div>
+              <Link href="/architect">
+                <div className={`nav-tab px-4 py-4 font-medium flex items-center cursor-pointer ${
+                  location === "/architect" ? "active text-secondary" : "text-secondary text-opacity-70 hover:text-opacity-100"
+                }`}>
+                  <Shield className="h-4 w-4 mr-1" />
+                  <span>Architect</span>
+                </div>
+              </Link>
+            </div>
           )}
         </div>
       </div>
