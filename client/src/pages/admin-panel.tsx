@@ -8,7 +8,7 @@ import { z } from "zod";
 import { format } from "date-fns";
 
 // Date handling helper functions
-const safeToISOString = (date: Date | string | undefined): string => {
+const safeToISOString = (date: Date | string | null | undefined): string => {
   try {
     if (!date) return '';
     const dateObj = typeof date === 'string' ? new Date(date) : date;
@@ -2021,89 +2021,6 @@ export default function AdminPanel() {
   const renderEventsTab = () => {
     const filteredEvents = filteredData();
     
-    // Function to safely format date
-    const formatDate = (dateString: string | number | Date) => {
-      try {
-        const date = new Date(dateString);
-        // Check if date is valid
-        if (isNaN(date.getTime())) {
-          return "Invalid date";
-        }
-        return format(date, "MMM d, yyyy HH:mm");
-      } catch (e) {
-        return "Invalid date";
-      }
-    };
-    
-    // Function to safely calculate duration
-    const calculateDuration = (startDateStr: string | number | Date, endDateStr: string | number | Date) => {
-      try {
-        const startDate = new Date(startDateStr);
-        const endDate = new Date(endDateStr);
-        
-        // Check if dates are valid
-        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-          return "N/A";
-        }
-        
-        const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-        return `${durationDays} days`;
-      } catch (e) {
-        return "N/A";
-      }
-    };
-    
-    // Function to determine event status safely
-    const getEventStatus = (startDateStr: string | number | Date, endDateStr: string | number | Date) => {
-      try {
-        const now = new Date();
-        const startDate = new Date(startDateStr);
-        const endDate = new Date(endDateStr);
-        
-        // Check if dates are valid
-        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-          return <span className="text-gray-400">Unknown</span>;
-        }
-        
-        if (now < startDate) {
-          return <span className="text-blue-400">Upcoming</span>;
-        } else if (now > endDate) {
-          return <span className="text-red-400">Ended</span>;
-        } else {
-          return <span className="text-green-400">Active</span>;
-        }
-      } catch (e) {
-        return <span className="text-gray-400">Unknown</span>;
-      }
-    };
-    
-    // Clean date input and convert to ISO string safely
-    const safeToISOString = (date: Date | null | undefined): string => {
-      if (!date) return '';
-      
-      try {
-        return !isNaN(date.getTime()) 
-          ? date.toISOString().slice(0, 16) 
-          : new Date().toISOString().slice(0, 16);
-      } catch (e) {
-        return new Date().toISOString().slice(0, 16);
-      }
-    };
-    
-    // Safe date change handler
-    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>, onChange: (date: Date) => void) => {
-      try {
-        const date = new Date(e.target.value);
-        if (!isNaN(date.getTime())) {
-          onChange(date);
-        } else {
-          onChange(new Date());
-        }
-      } catch (e) {
-        onChange(new Date());
-      }
-    };
-    
     return (
       <div>
         <div className="flex justify-between items-center mb-6">
@@ -2311,23 +2228,86 @@ export default function AdminPanel() {
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-400">Starts:</span>
-                        <span className="text-white">{formatDate(event.startDate)}</span>
+                        <span className="text-white">{
+                          (() => {
+                            try {
+                              if (!event.startDate) return 'N/A';
+                              const date = new Date(event.startDate);
+                              if (isNaN(date.getTime())) return 'Invalid date';
+                              return format(date, "MMM d, yyyy HH:mm");
+                            } catch (e) {
+                              return 'Invalid date';
+                            }
+                          })()
+                        }</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-400">Ends:</span>
-                        <span className="text-white">{formatDate(event.endDate)}</span>
+                        <span className="text-white">{
+                          (() => {
+                            try {
+                              if (!event.endDate) return 'N/A';
+                              const date = new Date(event.endDate);
+                              if (isNaN(date.getTime())) return 'Invalid date';
+                              return format(date, "MMM d, yyyy HH:mm");
+                            } catch (e) {
+                              return 'Invalid date';
+                            }
+                          })()
+                        }</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-400">Duration:</span>
                         <span className="text-white">
-                          {calculateDuration(event.startDate, event.endDate)}
+                          {
+                            (() => {
+                              try {
+                                if (!event.startDate || !event.endDate) return 'N/A';
+                                const start = new Date(event.startDate);
+                                const end = new Date(event.endDate);
+                                
+                                if (isNaN(start.getTime()) || isNaN(end.getTime())) return 'Invalid duration';
+                                
+                                const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+                                return `${days} days`;
+                              } catch (e) {
+                                return 'Invalid duration';
+                              }
+                            })()
+                          }
                         </span>
                       </div>
                       <div className="mt-4">
                         <div className={`p-2 rounded-md border-l-4 ${typeColors[event.type as keyof typeof typeColors] || "border-gray-500"} bg-primary-light bg-opacity-20`}>
                           <div className="text-xs text-gray-400">Status:</div>
                           <div className="text-sm font-medium">
-                            {getEventStatus(event.startDate, event.endDate)}
+                            {
+                              (() => {
+                                try {
+                                  if (!event.startDate || !event.endDate) {
+                                    return <span className="text-gray-400">Unknown</span>;
+                                  }
+                                  
+                                  const start = new Date(event.startDate);
+                                  const end = new Date(event.endDate);
+                                  const now = new Date();
+                                  
+                                  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                                    return <span className="text-gray-400">Unknown</span>;
+                                  }
+                                  
+                                  if (now < start) {
+                                    return <span className="text-blue-400">Upcoming</span>;
+                                  } else if (now > end) {
+                                    return <span className="text-red-400">Ended</span>;
+                                  } else {
+                                    return <span className="text-green-400">Active</span>;
+                                  }
+                                } catch (e) {
+                                  return <span className="text-gray-400">Unknown</span>;
+                                }
+                              })()
+                            }
                           </div>
                         </div>
                       </div>
@@ -2406,7 +2386,7 @@ export default function AdminPanel() {
                 <Users className="h-6 w-6 text-accent mr-2" />
                 <div>
                   <p className="text-sm text-gray-400">Registered Users</p>
-                  <p className="font-medium text-white">{users?.length || 0} Hunters</p>
+                  <p className="font-medium text-white">{(Array.isArray(users) ? users.length : 0)} Hunters</p>
                 </div>
               </div>
               <div className="h-10 border-l border-gray-700 hidden md:block"></div>
@@ -2414,7 +2394,7 @@ export default function AdminPanel() {
                 <ClipboardList className="h-6 w-6 text-green-400 mr-2" />
                 <div>
                   <p className="text-sm text-gray-400">Active Quests</p>
-                  <p className="font-medium text-white">{quests?.length || 0} Quests</p>
+                  <p className="font-medium text-white">{(Array.isArray(quests) ? quests.length : 0)} Quests</p>
                 </div>
               </div>
               <div className="h-10 border-l border-gray-700 hidden md:block"></div>
@@ -2423,14 +2403,14 @@ export default function AdminPanel() {
                 <div>
                   <p className="text-sm text-gray-400">Upcoming Events</p>
                   <p className="font-medium text-white">
-                    {events?.filter((e: any) => {
+                    {(Array.isArray(events) ? events.filter((e: any) => {
                       try {
                         const startDate = new Date(e.startDate);
                         return !isNaN(startDate.getTime()) && startDate > new Date();
                       } catch {
                         return false;
                       }
-                    }).length || 0} Events
+                    }) : []).length || 0} Events
                   </p>
                 </div>
               </div>
