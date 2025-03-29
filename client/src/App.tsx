@@ -10,7 +10,7 @@ import Quests from "@/pages/quests";
 import Jobs from "@/pages/jobs";
 import Shop from "@/pages/shop";
 import Leaderboard from "@/pages/leaderboard";
-import AdminPanel from "@/pages/admin-panel";
+import ArchitectPanel from "@/pages/architect-panel";
 import { ProtectedRoute, AdminRoute } from "./lib/protected-route";
 import { AuthProvider } from "./hooks/use-auth";
 
@@ -23,7 +23,7 @@ function Router() {
       <ProtectedRoute path="/jobs" component={Jobs} />
       <ProtectedRoute path="/shop" component={Shop} />
       <ProtectedRoute path="/leaderboard" component={Leaderboard} />
-      <AdminRoute path="/admin" component={AdminPanel} />
+      <AdminRoute path="/architect" component={ArchitectPanel} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
