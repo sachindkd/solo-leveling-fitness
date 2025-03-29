@@ -2124,44 +2124,49 @@ export default function AdminPanel() {
                       )}
                     />
                     
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={eventForm.control}
-                        name="startDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Start Date</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="datetime-local" 
-                                {...field} 
-                                value={safeToISOString(field.value)}
-                                onChange={(e) => handleDateChange(e, field.onChange)} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={eventForm.control}
-                        name="endDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>End Date</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="datetime-local" 
-                                {...field} 
-                                value={safeToISOString(field.value)}
-                                onChange={(e) => handleDateChange(e, field.onChange)} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="bg-gray-800 p-3 rounded-md border border-gray-700">
+                        <p className="text-xs text-gray-400 mb-2">Note: Date fields are now optional</p>
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={eventForm.control}
+                            name="startDate"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Start Date (Optional)</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="datetime-local" 
+                                    {...field} 
+                                    value={safeToISOString(field.value)}
+                                    onChange={(e) => handleDateChange(e, field.onChange)}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={eventForm.control}
+                            name="endDate"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>End Date (Optional)</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="datetime-local" 
+                                    {...field} 
+                                    value={safeToISOString(field.value)}
+                                    onChange={(e) => handleDateChange(e, field.onChange)}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
                     </div>
                     
                     <DialogFooter>
@@ -2226,88 +2231,72 @@ export default function AdminPanel() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">Starts:</span>
-                        <span className="text-white">{
-                          (() => {
-                            try {
-                              if (!event.startDate) return 'N/A';
-                              const date = new Date(event.startDate);
-                              if (isNaN(date.getTime())) return 'Invalid date';
-                              return format(date, "MMM d, yyyy HH:mm");
-                            } catch (e) {
-                              return 'Invalid date';
-                            }
-                          })()
-                        }</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">Ends:</span>
-                        <span className="text-white">{
-                          (() => {
-                            try {
-                              if (!event.endDate) return 'N/A';
-                              const date = new Date(event.endDate);
-                              if (isNaN(date.getTime())) return 'Invalid date';
-                              return format(date, "MMM d, yyyy HH:mm");
-                            } catch (e) {
-                              return 'Invalid date';
-                            }
-                          })()
-                        }</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">Duration:</span>
-                        <span className="text-white">
-                          {
+                      {/* Show dates if they exist */}
+                      {event.startDate && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-400">Starts:</span>
+                          <span className="text-white">{
                             (() => {
                               try {
-                                if (!event.startDate || !event.endDate) return 'N/A';
-                                const start = new Date(event.startDate);
-                                const end = new Date(event.endDate);
-                                
-                                if (isNaN(start.getTime()) || isNaN(end.getTime())) return 'Invalid duration';
-                                
-                                const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-                                return `${days} days`;
+                                const date = new Date(event.startDate);
+                                if (isNaN(date.getTime())) return 'Invalid date';
+                                return format(date, "MMM d, yyyy HH:mm");
                               } catch (e) {
-                                return 'Invalid duration';
+                                return 'Invalid date';
                               }
                             })()
-                          }
-                        </span>
-                      </div>
-                      <div className="mt-4">
-                        <div className={`p-2 rounded-md border-l-4 ${typeColors[event.type as keyof typeof typeColors] || "border-gray-500"} bg-primary-light bg-opacity-20`}>
-                          <div className="text-xs text-gray-400">Status:</div>
-                          <div className="text-sm font-medium">
+                          }</span>
+                        </div>
+                      )}
+                      
+                      {event.endDate && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-400">Ends:</span>
+                          <span className="text-white">{
+                            (() => {
+                              try {
+                                const date = new Date(event.endDate);
+                                if (isNaN(date.getTime())) return 'Invalid date';
+                                return format(date, "MMM d, yyyy HH:mm");
+                              } catch (e) {
+                                return 'Invalid date';
+                              }
+                            })()
+                          }</span>
+                        </div>
+                      )}
+                      
+                      {/* Only show duration if both dates exist */}
+                      {event.startDate && event.endDate && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-400">Duration:</span>
+                          <span className="text-white">
                             {
                               (() => {
                                 try {
-                                  if (!event.startDate || !event.endDate) {
-                                    return <span className="text-gray-400">Unknown</span>;
-                                  }
-                                  
                                   const start = new Date(event.startDate);
                                   const end = new Date(event.endDate);
-                                  const now = new Date();
                                   
-                                  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-                                    return <span className="text-gray-400">Unknown</span>;
-                                  }
+                                  if (isNaN(start.getTime()) || isNaN(end.getTime())) return 'Invalid duration';
                                   
-                                  if (now < start) {
-                                    return <span className="text-blue-400">Upcoming</span>;
-                                  } else if (now > end) {
-                                    return <span className="text-red-400">Ended</span>;
-                                  } else {
-                                    return <span className="text-green-400">Active</span>;
-                                  }
+                                  const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+                                  return `${days} days`;
                                 } catch (e) {
-                                  return <span className="text-gray-400">Unknown</span>;
+                                  return 'Invalid duration';
                                 }
                               })()
                             }
+                          </span>
+                        </div>
+                      )}
+                      
+                      <div className="mt-4">
+                        <div className={`p-2 rounded-md border-l-4 ${typeColors[event.type as keyof typeof typeColors] || "border-gray-500"} bg-primary-light bg-opacity-20`}>
+                          <div className="text-xs text-gray-400">Event Type:</div>
+                          <div className="text-sm font-medium capitalize">
+                            <span className={typeTextColors[event.type as keyof typeof typeTextColors] || "text-white"}>
+                              {event.type.replace(/([A-Z])/g, ' $1').trim()}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -2401,16 +2390,9 @@ export default function AdminPanel() {
               <div className="flex items-center">
                 <Calendar className="h-6 w-6 text-blue-400 mr-2" />
                 <div>
-                  <p className="text-sm text-gray-400">Upcoming Events</p>
+                  <p className="text-sm text-gray-400">Total Events</p>
                   <p className="font-medium text-white">
-                    {(Array.isArray(events) ? events.filter((e: any) => {
-                      try {
-                        const startDate = new Date(e.startDate);
-                        return !isNaN(startDate.getTime()) && startDate > new Date();
-                      } catch {
-                        return false;
-                      }
-                    }) : []).length || 0} Events
+                    {(Array.isArray(events) ? events.length : 0)} Events
                   </p>
                 </div>
               </div>

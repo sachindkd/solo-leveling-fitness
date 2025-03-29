@@ -103,8 +103,8 @@ export const events = pgTable("events", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description").notNull(),
-  startDate: timestamp("start_date").notNull(),
-  endDate: timestamp("end_date").notNull(),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
   type: text("type").notNull(), // "rankup", "doublexp", etc.
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
