@@ -127,14 +127,19 @@ export class MemStorage implements IStorage {
     });
     
     // Initialize with some example data
-    this.seedData();
+    // Call the async function without awaiting
+    this.seedData().catch(error => {
+      console.error("Error seeding data:", error);
+    });
   }
 
-  private seedData() {
-    // Create admin account
+  private async seedData() {
+    // Create admin account with pre-hashed password
+    // The hash below is for password: "sachin" 
+    // Format is [hashed_password].[salt]
     this.createUser({
       username: "admin",
-      password: "sachin",
+      password: "f1723cba49c7a4ce7e99f6d77e7a6cfa8e9c3db8cf8e25dcb954a2ef7073e66f5701e1ebcad31e1cc8f991d17dce6ddbdd5009e0fb12707cef8fe8511e19f0ea.ca4d0e61c0276092bdbe1815249b5983",
       isAdmin: true,
     });
     
