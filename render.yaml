@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: fitness-rpg-app
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        sync: false
+    autoDeploy: true
