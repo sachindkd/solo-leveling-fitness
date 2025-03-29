@@ -6,6 +6,75 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
+
+// Date handling helper functions
+const safeToISOString = (date: Date | string | undefined): string => {
+  try {
+    if (!date) return '';
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(dateObj.getTime())) return '';
+    return dateObj.toISOString().slice(0, 16);
+  } catch {
+    return '';
+  }
+};
+
+const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>, onChange: (date: Date) => void) => {
+  try {
+    const date = new Date(e.target.value);
+    if (!isNaN(date.getTime())) {
+      onChange(date);
+    }
+  } catch (error) {
+    console.error("Invalid date:", error);
+  }
+};
+
+const formatDate = (date: string | Date): string => {
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(dateObj.getTime())) return 'Invalid date';
+    return format(dateObj, "MMM d, yyyy HH:mm");
+  } catch {
+    return 'Invalid date';
+  }
+};
+
+const calculateDuration = (startDate: string | Date, endDate: string | Date): string => {
+  try {
+    const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
+    const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return 'Invalid duration';
+    
+    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    return `${days} days`;
+  } catch {
+    return 'Invalid duration';
+  }
+};
+
+const getEventStatus = (startDate: string | Date, endDate: string | Date): JSX.Element => {
+  try {
+    const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
+    const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
+    const now = new Date();
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return <span className="text-gray-400">Unknown</span>;
+    }
+    
+    if (now < start) {
+      return <span className="text-blue-400">Upcoming</span>;
+    } else if (now > end) {
+      return <span className="text-red-400">Ended</span>;
+    } else {
+      return <span className="text-green-400">Active</span>;
+    }
+  } catch {
+    return <span className="text-gray-400">Unknown</span>;
+  }
+};
 import { 
   Card, 
   CardContent, 
@@ -631,13 +700,34 @@ export default function AdminPanel() {
         });
         break;
       case "event":
-        eventForm.reset({
-          title: item.title,
-          description: item.description,
-          type: item.type,
-          startDate: new Date(item.startDate),
-          endDate: new Date(item.endDate)
-        });
+        // Parse dates safely with fallbacks to prevent invalid date errors
+        const startDate = item.startDate ? new Date(item.startDate) : new Date();
+        const endDate = item.endDate ? new Date(item.endDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        
+        // Ensure we only proceed with valid dates
+        if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+          eventForm.reset({
+            title: item.title,
+            description: item.description,
+            type: item.type,
+            startDate: startDate,
+            endDate: endDate
+          });
+        } else {
+          // If dates are invalid, use current time with appropriate defaults
+          toast({
+            title: "Date format issue",
+            description: "Some dates were invalid and have been reset to defaults.",
+            variant: "destructive"
+          });
+          eventForm.reset({
+            title: item.title,
+            description: item.description,
+            type: item.type,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+          });
+        }
         break;
     }
   };
@@ -1931,6 +2021,89 @@ export default function AdminPanel() {
   const renderEventsTab = () => {
     const filteredEvents = filteredData();
     
+    // Function to safely format date
+    const formatDate = (dateString: string | number | Date) => {
+      try {
+        const date = new Date(dateString);
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+          return "Invalid date";
+        }
+        return format(date, "MMM d, yyyy HH:mm");
+      } catch (e) {
+        return "Invalid date";
+      }
+    };
+    
+    // Function to safely calculate duration
+    const calculateDuration = (startDateStr: string | number | Date, endDateStr: string | number | Date) => {
+      try {
+        const startDate = new Date(startDateStr);
+        const endDate = new Date(endDateStr);
+        
+        // Check if dates are valid
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+          return "N/A";
+        }
+        
+        const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+        return `${durationDays} days`;
+      } catch (e) {
+        return "N/A";
+      }
+    };
+    
+    // Function to determine event status safely
+    const getEventStatus = (startDateStr: string | number | Date, endDateStr: string | number | Date) => {
+      try {
+        const now = new Date();
+        const startDate = new Date(startDateStr);
+        const endDate = new Date(endDateStr);
+        
+        // Check if dates are valid
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+          return <span className="text-gray-400">Unknown</span>;
+        }
+        
+        if (now < startDate) {
+          return <span className="text-blue-400">Upcoming</span>;
+        } else if (now > endDate) {
+          return <span className="text-red-400">Ended</span>;
+        } else {
+          return <span className="text-green-400">Active</span>;
+        }
+      } catch (e) {
+        return <span className="text-gray-400">Unknown</span>;
+      }
+    };
+    
+    // Clean date input and convert to ISO string safely
+    const safeToISOString = (date: Date | null | undefined): string => {
+      if (!date) return '';
+      
+      try {
+        return !isNaN(date.getTime()) 
+          ? date.toISOString().slice(0, 16) 
+          : new Date().toISOString().slice(0, 16);
+      } catch (e) {
+        return new Date().toISOString().slice(0, 16);
+      }
+    };
+    
+    // Safe date change handler
+    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>, onChange: (date: Date) => void) => {
+      try {
+        const date = new Date(e.target.value);
+        if (!isNaN(date.getTime())) {
+          onChange(date);
+        } else {
+          onChange(new Date());
+        }
+      } catch (e) {
+        onChange(new Date());
+      }
+    };
+    
     return (
       <div>
         <div className="flex justify-between items-center mb-6">
@@ -2045,8 +2218,8 @@ export default function AdminPanel() {
                               <Input 
                                 type="datetime-local" 
                                 {...field} 
-                                value={field.value ? new Date(field.value).toISOString().slice(0, 16) : ''}
-                                onChange={(e) => field.onChange(new Date(e.target.value))} 
+                                value={safeToISOString(field.value)}
+                                onChange={(e) => handleDateChange(e, field.onChange)} 
                               />
                             </FormControl>
                             <FormMessage />
@@ -2064,8 +2237,8 @@ export default function AdminPanel() {
                               <Input 
                                 type="datetime-local" 
                                 {...field} 
-                                value={field.value ? new Date(field.value).toISOString().slice(0, 16) : ''}
-                                onChange={(e) => field.onChange(new Date(e.target.value))} 
+                                value={safeToISOString(field.value)}
+                                onChange={(e) => handleDateChange(e, field.onChange)} 
                               />
                             </FormControl>
                             <FormMessage />
@@ -2138,28 +2311,23 @@ export default function AdminPanel() {
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-400">Starts:</span>
-                        <span className="text-white">{format(new Date(event.startDate), "MMM d, yyyy HH:mm")}</span>
+                        <span className="text-white">{formatDate(event.startDate)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-400">Ends:</span>
-                        <span className="text-white">{format(new Date(event.endDate), "MMM d, yyyy HH:mm")}</span>
+                        <span className="text-white">{formatDate(event.endDate)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-400">Duration:</span>
                         <span className="text-white">
-                          {Math.ceil((new Date(event.endDate).getTime() - new Date(event.startDate).getTime()) / (1000 * 60 * 60 * 24))} days
+                          {calculateDuration(event.startDate, event.endDate)}
                         </span>
                       </div>
                       <div className="mt-4">
                         <div className={`p-2 rounded-md border-l-4 ${typeColors[event.type as keyof typeof typeColors] || "border-gray-500"} bg-primary-light bg-opacity-20`}>
                           <div className="text-xs text-gray-400">Status:</div>
                           <div className="text-sm font-medium">
-                            {new Date() < new Date(event.startDate) ? 
-                              <span className="text-blue-400">Upcoming</span> : 
-                              new Date() > new Date(event.endDate) ? 
-                                <span className="text-red-400">Ended</span> : 
-                                <span className="text-green-400">Active</span>
-                            }
+                            {getEventStatus(event.startDate, event.endDate)}
                           </div>
                         </div>
                       </div>
@@ -2255,7 +2423,14 @@ export default function AdminPanel() {
                 <div>
                   <p className="text-sm text-gray-400">Upcoming Events</p>
                   <p className="font-medium text-white">
-                    {events?.filter((e: any) => new Date(e.startDate) > new Date()).length || 0} Events
+                    {events?.filter((e: any) => {
+                      try {
+                        const startDate = new Date(e.startDate);
+                        return !isNaN(startDate.getTime()) && startDate > new Date();
+                      } catch {
+                        return false;
+                      }
+                    }).length || 0} Events
                   </p>
                 </div>
               </div>
