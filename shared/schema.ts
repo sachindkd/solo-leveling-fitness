@@ -103,8 +103,6 @@ export const events = pgTable("events", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description").notNull(),
-  startDate: timestamp("start_date"),
-  endDate: timestamp("end_date"),
   type: text("type").notNull(), // "rankup", "doublexp", etc.
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -160,8 +158,6 @@ export const insertUserItemSchema = createInsertSchema(userItems).pick({
 export const insertEventSchema = createInsertSchema(events).pick({
   title: true,
   description: true,
-  startDate: true,
-  endDate: true,
   type: true,
 });
 

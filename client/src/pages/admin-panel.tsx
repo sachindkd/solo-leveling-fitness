@@ -133,7 +133,8 @@ import {
   Award,
   ShieldAlert,
   Trophy,
-  Star
+  Star,
+  Info as InfoIcon
 } from "lucide-react";
 
 export default function AdminPanel() {
@@ -240,9 +241,7 @@ export default function AdminPanel() {
     defaultValues: {
       title: "",
       description: "",
-      type: "rankup",
-      startDate: new Date(),
-      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      type: "rankup"
     }
   });
 
@@ -700,34 +699,11 @@ export default function AdminPanel() {
         });
         break;
       case "event":
-        // Parse dates safely with fallbacks to prevent invalid date errors
-        const startDate = item.startDate ? new Date(item.startDate) : new Date();
-        const endDate = item.endDate ? new Date(item.endDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-        
-        // Ensure we only proceed with valid dates
-        if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
-          eventForm.reset({
-            title: item.title,
-            description: item.description,
-            type: item.type,
-            startDate: startDate,
-            endDate: endDate
-          });
-        } else {
-          // If dates are invalid, use current time with appropriate defaults
-          toast({
-            title: "Date format issue",
-            description: "Some dates were invalid and have been reset to defaults.",
-            variant: "destructive"
-          });
-          eventForm.reset({
-            title: item.title,
-            description: item.description,
-            type: item.type,
-            startDate: new Date(),
-            endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-          });
-        }
+        eventForm.reset({
+          title: item.title,
+          description: item.description,
+          type: item.type
+        });
         break;
     }
   };
@@ -2044,9 +2020,7 @@ export default function AdminPanel() {
                     eventForm.reset({
                       title: "",
                       description: "",
-                      type: "rankup",
-                      startDate: new Date(),
-                      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                      type: "rankup"
                     });
                   }}
                 >
@@ -2124,48 +2098,10 @@ export default function AdminPanel() {
                       )}
                     />
                     
-                    <div className="grid grid-cols-1 gap-4">
-                      <div className="bg-gray-800 p-3 rounded-md border border-gray-700">
-                        <p className="text-xs text-gray-400 mb-2">Note: Date fields are now optional</p>
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                            control={eventForm.control}
-                            name="startDate"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Start Date (Optional)</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    type="datetime-local" 
-                                    {...field} 
-                                    value={safeToISOString(field.value)}
-                                    onChange={(e) => handleDateChange(e, field.onChange)}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={eventForm.control}
-                            name="endDate"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>End Date (Optional)</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    type="datetime-local" 
-                                    {...field} 
-                                    value={safeToISOString(field.value)}
-                                    onChange={(e) => handleDateChange(e, field.onChange)}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                    <div className="p-3 rounded-md bg-gray-800 border border-gray-700 mb-4">
+                      <div className="flex items-center space-x-2">
+                        <InfoIcon className="h-5 w-5 text-blue-400" />
+                        <p className="text-sm text-gray-300">Time-based features have been simplified to improve app stability.</p>
                       </div>
                     </div>
                     
@@ -2231,64 +2167,20 @@ export default function AdminPanel() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      {/* Show dates if they exist */}
-                      {event.startDate && (
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-400">Starts:</span>
-                          <span className="text-white">{
-                            (() => {
-                              try {
-                                const date = new Date(event.startDate);
-                                if (isNaN(date.getTime())) return 'Invalid date';
-                                return format(date, "MMM d, yyyy HH:mm");
-                              } catch (e) {
-                                return 'Invalid date';
-                              }
-                            })()
-                          }</span>
-                        </div>
-                      )}
-                      
-                      {event.endDate && (
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-400">Ends:</span>
-                          <span className="text-white">{
-                            (() => {
-                              try {
-                                const date = new Date(event.endDate);
-                                if (isNaN(date.getTime())) return 'Invalid date';
-                                return format(date, "MMM d, yyyy HH:mm");
-                              } catch (e) {
-                                return 'Invalid date';
-                              }
-                            })()
-                          }</span>
-                        </div>
-                      )}
-                      
-                      {/* Only show duration if both dates exist */}
-                      {event.startDate && event.endDate && (
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-400">Duration:</span>
-                          <span className="text-white">
-                            {
-                              (() => {
-                                try {
-                                  const start = new Date(event.startDate);
-                                  const end = new Date(event.endDate);
-                                  
-                                  if (isNaN(start.getTime()) || isNaN(end.getTime())) return 'Invalid duration';
-                                  
-                                  const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-                                  return `${days} days`;
-                                } catch (e) {
-                                  return 'Invalid duration';
-                                }
-                              })()
+                      <div className="flex justify-between text-sm mb-2">
+                        <span className="text-gray-400">Created:</span>
+                        <span className="text-white">{
+                          (() => {
+                            try {
+                              const date = new Date(event.createdAt);
+                              if (isNaN(date.getTime())) return 'Unknown';
+                              return format(date, "MMM d, yyyy");
+                            } catch (e) {
+                              return 'Unknown';
                             }
-                          </span>
-                        </div>
-                      )}
+                          })()
+                        }</span>
+                      </div>
                       
                       <div className="mt-4">
                         <div className={`p-2 rounded-md border-l-4 ${typeColors[event.type as keyof typeof typeColors] || "border-gray-500"} bg-primary-light bg-opacity-20`}>

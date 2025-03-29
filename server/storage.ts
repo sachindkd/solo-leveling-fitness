@@ -197,16 +197,12 @@ export class MemStorage implements IStorage {
     this.createEvent({
       title: "Rank Up Challenge",
       description: "Complete special tasks to advance to A-Rank",
-      startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
-      endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
       type: "rankup"
     });
     
     this.createEvent({
       title: "Double XP Weekend",
       description: "All workouts earn 2× XP for the weekend",
-      startDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
-      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
       type: "doublexp"
     });
   }
@@ -549,10 +545,8 @@ export class MemStorage implements IStorage {
   }
 
   async getActiveEvents(): Promise<Event[]> {
-    const now = new Date();
-    return Array.from(this.events.values()).filter(
-      (event) => new Date(event.startDate) <= now && new Date(event.endDate) >= now
-    );
+    // Since we've removed date fields, all events are considered active
+    return this.getAllEvents();
   }
 }
 
