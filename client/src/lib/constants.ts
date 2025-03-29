@@ -1,4 +1,4 @@
-import { StatType } from "@shared/schema";
+import { StatType, STATS, RANKS, JOBS } from "@shared/schema";
 
 // Rank colors
 export const RANK_COLORS = {
